@@ -1,0 +1,17 @@
+.env
+__pycache__/
+log.txt
+last_facts.txt
+python
+/AppData/
+/Contacts/
+/Downloads/
+/Favorites/
+/Links/
+/Music/
+/OneDrive/
+/Saved Games/
+/Searches/
+/Videos/
+ntuser.*
+NTUSER.DAT*
