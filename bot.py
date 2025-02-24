@@ -78,7 +78,7 @@ async def create_post():
 
 def schedule_posts():
     for post_time in POST_TIMES:
-        schedule.every().day.at(post_time.strip()).do(run_async_create_post)
+        schedule.every().day.at(post_time.strip()).do(lambda: asyncio.run(create_post()))
 
 def run_scheduler():
     schedule_posts()
