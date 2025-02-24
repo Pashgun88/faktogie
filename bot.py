@@ -27,7 +27,11 @@ async def generate_text():
         "Добавь лёгкий юмор, чтобы он звучал не как анекдот, а как забавное наблюдение. "
         "Избегай канцелярита, сложных оборотов и очевидных шуток."
     )
-    payload = {"model": "gpt-3.5-turbo", "messages": [{"role": "user", "content": prompt}]}
+    payload = {
+        "model": "gpt-3.5-turbo",
+        "messages": [{"role": "user", "content": prompt}]
+    }
+
     async with aiohttp.ClientSession() as session:
         async with session.post("https://api.openai.com/v1/chat/completions", json=payload, headers=headers) as response:
             if response.status == 200:
