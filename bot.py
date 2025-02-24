@@ -12,7 +12,7 @@ load_dotenv()
 BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 CHANNEL_ID = os.getenv("TELEGRAM_CHANNEL_ID")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-POST_TIMES = os.getenv("POST_TIMES", "10:00,15:00,20:00").split(",")
+POST_TIMES = os.getenv("POST_TIMES", "08:00,12:00,18:00,21:00").split(",")
 
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
@@ -21,7 +21,7 @@ TOPICS = ["наука", "технологии", "история", "космос"
 
 async def generate_text():
     headers = {"Authorization": f"Bearer {OPENAI_API_KEY}"}
-    prompt = (  
+    prompt = (
         f"Придумай интересный, но малоизвестный факт на тему {random.choice(TOPICS)}. "
         "Пиши так, чтобы текст был естественным, без 'Факт:' в начале. "
         "Добавь лёгкий юмор, чтобы он звучал не как анекдот, а как забавное наблюдение. "
@@ -72,20 +72,17 @@ async def create_post():
             print(f"⚠️ Пост опубликован без изображения: {fact_text}")
     except Exception as e:
         print(f"❌ Ошибка при публикации: {e}")
-    finally:
-        await bot.session.close()
 
 def schedule_posts():
     for post_time in POST_TIMES:
-        schedule.every().day.at(post_time.strip()).do(lambda: asyncio.create_task(create_post()))
+        schedule.every().day.at(post_time.strip()).do(lambda: asyncio.run(create_post()))
 
-async def run_scheduler():
+def run_scheduler():
     schedule_posts()
     print("📅 Бот запущен и будет публиковать посты в указанное время.")
     while True:
         schedule.run_pending()
-        await asyncio.sleep(1)
+        time.sleep(30)  # Проверяем каждые 30 секунд
 
 if __name__ == "__main__":
-    asyncio.run(run_scheduler())
-
+    run_scheduler()
