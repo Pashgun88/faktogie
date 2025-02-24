@@ -1,0 +1,32 @@
+name: Run Telegram Bot
+
+on:
+  schedule:
+    - cron: "0 8,12,18,21 * * *"  # Запуск в 08:00, 12:00, 18:00, 21:00 UTC
+  workflow_dispatch:  # Возможность запустить вручную
+
+jobs:
+  run-bot:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run the bot
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: |
+          python bot.py &  # Запускаем бота в фоновом режиме
+          sleep 600  # Ждём 10 минут (600 секунд)
+          pkill -f "python bot.py"  # Останавливаем бота
