@@ -31,7 +31,6 @@ async def generate_text():
         "model": "gpt-3.5-turbo",
         "messages": [{"role": "user", "content": prompt}]
     }
-
     async with aiohttp.ClientSession() as session:
         async with session.post("https://api.openai.com/v1/chat/completions", json=payload, headers=headers) as response:
             if response.status == 200:
