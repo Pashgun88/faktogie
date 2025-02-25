@@ -22,11 +22,14 @@ TOPICS = ["наука", "технологии", "история", "космос"
 async def generate_text():
     headers = {"Authorization": f"Bearer {OPENAI_API_KEY}"}
     prompt = (
-        f"Придумай интересный, но малоизвестный факт на тему {random.choice(TOPICS)}. "
-        "Пиши так, чтобы текст был естественным, без 'Факт:' в начале. "
-        "Добавь лёгкий юмор, чтобы он звучал не как анекдот, а как забавное наблюдение. "
-        "Избегай канцелярита, сложных оборотов и очевидных шуток."
-    )
+    f"Напиши короткий, но интересный и малоизвестный факт на тему {random.choice(TOPICS)}. "
+    "Текст должен быть грамматически правильным и естественным. "
+    "Добавь лёгкий юмор, но избегай шуток, похожих на анекдоты. "
+    "Не используй сложные обороты, канцелярит и очевидные шутки. "
+    "Факт должен быть написан живым языком, без слов 'Факт:' или 'Знаете ли вы...'. "
+    "В конце можешь добавить небольшое остроумное замечание, но оно должно звучать органично."
+)
+
     payload = {"model": "gpt-3.5-turbo", "messages": [{"role": "user", "content": prompt}]}
     async with aiohttp.ClientSession() as session:
         async with session.post("https://api.openai.com/v1/chat/completions", json=payload, headers=headers) as response:
@@ -54,7 +57,8 @@ async def generate_image(prompt):
             return None
 
 async def create_post():
-    fact_text = await generate_text()
+   fact_text = await generate_text()
+   fact_text = await check_grammar(fact_text)  # Проверяем и исправляем текст
     if not fact_text:
         print("❌ Не удалось сгенерировать текст")
         return
@@ -83,6 +87,7 @@ def run_scheduler():
     while True:
         schedule.run_pending()
         time.sleep(30)  # Проверяем каждые 30 секунд
+
 asyncio.run(create_post())  # Принудительно публикуем тестовый пост
 
 if __name__ == "__main__":
