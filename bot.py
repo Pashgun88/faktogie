@@ -57,13 +57,12 @@ async def generate_image(prompt):
             return None
 
 async def check_grammar(text):
-    # Заглушка для проверки грамматики, можно заменить на реальную проверку
     return text
 
 async def create_post():
     fact_text = await generate_text()
-    fact_text = await check_grammar(fact_text)  # Проверяем и исправляем текст
-    if not fact_text:  # <- убедись, что здесь отступ правильный (4 пробела)
+    fact_text = await check_grammar(fact_text)
+    if not fact_text:
         print("❌ Не удалось сгенерировать текст")
         return
 
@@ -90,8 +89,7 @@ def run_scheduler():
     print("📅 Бот запущен и будет публиковать посты в указанное время.")
     while True:
         schedule.run_pending()
-        time.sleep(600)  # Проверяем каждые 10 минут
+        time.sleep(600)
 
 if __name__ == "__main__":
-    asyncio.run(create_post())  # Вместо schedule, запустить сразу
-    
+    asyncio.run(create_post())
