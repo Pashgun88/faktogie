@@ -94,3 +94,4 @@ def run_scheduler():
 
 if __name__ == "__main__":
     asyncio.run(create_post())  # Вместо schedule, запустить сразу
+    
