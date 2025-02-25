@@ -83,6 +83,7 @@ def run_scheduler():
     while True:
         schedule.run_pending()
         time.sleep(30)  # Проверяем каждые 30 секунд
+asyncio.run(create_post())  # Принудительно публикуем тестовый пост
 
 if __name__ == "__main__":
     run_scheduler()
