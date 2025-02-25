@@ -62,6 +62,7 @@ async def check_grammar(text):
 async def create_post():
     fact_text = await generate_text()
     fact_text = await check_grammar(fact_text)
+    
     if not fact_text:
         print("❌ Не удалось сгенерировать текст")
         return
