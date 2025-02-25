@@ -62,15 +62,15 @@ async def check_grammar(text):
 async def create_post():
     fact_text = await generate_text()
     fact_text = await check_grammar(fact_text)
-
+    
     if not fact_text:
         print("❌ Не удалось сгенерировать текст")
         return
-
+    
     image_url = await generate_image(fact_text)
     if not image_url:
         image_url = await generate_image("Интересный научный факт, инфографика, минимализм, яркие цвета.")
-
+    
     try:
         if image_url:
             await bot.send_photo(chat_id=CHANNEL_ID, photo=image_url, caption=f"📝 {fact_text}")
