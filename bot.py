@@ -19,6 +19,9 @@ dp = Dispatcher()
 
 TOPICS = ["наука", "технологии", "история", "космос", "медицина", "психология", "искусство"]
 
+# Создаём глобальную сессию
+session = aiohttp.ClientSession()
+
 async def generate_text():
     headers = {"Authorization": f"Bearer {OPENAI_API_KEY}"}
     prompt = (
@@ -31,36 +34,28 @@ async def generate_text():
     )
 
     payload = {"model": "gpt-3.5-turbo", "messages": [{"role": "user", "content": prompt}]}
-    session = aiohttp.ClientSession()
-    try:
-        async with session.post("https://api.openai.com/v1/chat/completions", json=payload, headers=headers) as response:
-            if response.status == 200:
-                data = await response.json()
-                text = data.get("choices")[0]["message"]["content"] if "choices" in data else None
-                print(f"📝 Сгенерированный текст: {text}")
-                return text
-            else:
-                print(f"❌ Ошибка при генерации текста: {await response.text()}")
-                return None
-    finally:
-        await session.close()
+    async with session.post("https://api.openai.com/v1/chat/completions", json=payload, headers=headers) as response:
+        if response.status == 200:
+            data = await response.json()
+            text = data.get("choices")[0]["message"]["content"] if "choices" in data else None
+            print(f"📝 Сгенерированный текст: {text}")
+            return text
+        else:
+            print(f"❌ Ошибка при генерации текста: {await response.text()}")
+            return None
 
 async def generate_image(prompt):
     headers = {"Authorization": f"Bearer {OPENAI_API_KEY}"}
     payload = {"model": "dall-e-3", "prompt": prompt, "size": "1024x1024"}
-    session = aiohttp.ClientSession()
-    try:
-        async with session.post("https://api.openai.com/v1/images/generations", json=payload, headers=headers) as response:
-            if response.status == 200:
-                data = await response.json()
-                if "data" in data:
-                    image_url = data["data"][0]["url"]
-                    print(f"🖼️ Сгенерированное изображение: {image_url}")
-                    return image_url
-            print(f"❌ Ошибка генерации изображения: {await response.text()}")
-            return None
-    finally:
-        await session.close()
+    async with session.post("https://api.openai.com/v1/images/generations", json=payload, headers=headers) as response:
+        if response.status == 200:
+            data = await response.json()
+            if "data" in data:
+                image_url = data["data"][0]["url"]
+                print(f"🖼️ Сгенерированное изображение: {image_url}")
+                return image_url
+        print(f"❌ Ошибка генерации изображения: {await response.text()}")
+        return None
 
 async def check_grammar(text):
     return text
@@ -94,9 +89,19 @@ def schedule_posts():
 def run_scheduler():
     schedule_posts()
     print("📅 Бот запущен и будет публиковать посты в указанное время.")
-    while True:
-        schedule.run_pending()
-        time.sleep(600)
+    try:
+        while True:
+            schedule.run_pending()
+            time.sleep(600)
+    except KeyboardInterrupt:
+        print("🛑 Завершаем работу...")
+        asyncio.run(close_session())
+
+async def close_session():
+    await session.close()
 
 if __name__ == "__main__":
-    asyncio.run(create_post())
+    try:
+        asyncio.run(create_post())
+    finally:
+        asyncio.run(close_session())
