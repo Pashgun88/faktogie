@@ -58,7 +58,8 @@ async def check_grammar(text):
     return text
 
 async def create_post():
-    async with aiohttp.ClientSession() as session:
+    session = aiohttp.ClientSession()
+    try:
         fact_text = await generate_text(session)
         fact_text = await check_grammar(fact_text)
         
@@ -79,6 +80,8 @@ async def create_post():
                 print(f"⚠️ Пост опубликован без изображения: {fact_text}")
         except Exception as e:
             print(f"❌ Ошибка при публикации: {e}")
+    finally:
+        await session.close()
 
 def schedule_posts():
     for post_time in POST_TIMES:
