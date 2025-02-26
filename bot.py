@@ -19,10 +19,7 @@ dp = Dispatcher()
 
 TOPICS = ["наука", "технологии", "история", "космос", "медицина", "психология", "искусство"]
 
-# Создаём глобальную сессию
-session = aiohttp.ClientSession()
-
-async def generate_text():
+async def generate_text(session):
     headers = {"Authorization": f"Bearer {OPENAI_API_KEY}"}
     prompt = (
         f"Напиши короткий, но интересный и малоизвестный факт на тему {random.choice(TOPICS)}. "
@@ -44,7 +41,7 @@ async def generate_text():
             print(f"❌ Ошибка при генерации текста: {await response.text()}")
             return None
 
-async def generate_image(prompt):
+async def generate_image(session, prompt):
     headers = {"Authorization": f"Bearer {OPENAI_API_KEY}"}
     payload = {"model": "dall-e-3", "prompt": prompt, "size": "1024x1024"}
     async with session.post("https://api.openai.com/v1/images/generations", json=payload, headers=headers) as response:
@@ -61,26 +58,27 @@ async def check_grammar(text):
     return text
 
 async def create_post():
-    fact_text = await generate_text()
-    fact_text = await check_grammar(fact_text)
-    
-    if not fact_text:
-        print("❌ Не удалось сгенерировать текст")
-        return
-    
-    image_url = await generate_image(fact_text)
-    if not image_url:
-        image_url = await generate_image("Интересный научный факт, инфографика, минимализм, яркие цвета.")
-    
-    try:
-        if image_url:
-            await bot.send_photo(chat_id=CHANNEL_ID, photo=image_url, caption=f"📝 {fact_text}")
-            print(f"✅ Пост опубликован: {fact_text}")
-        else:
-            await bot.send_message(chat_id=CHANNEL_ID, text=f"📝 {fact_text}\n⚠️ Без изображения")
-            print(f"⚠️ Пост опубликован без изображения: {fact_text}")
-    except Exception as e:
-        print(f"❌ Ошибка при публикации: {e}")
+    async with aiohttp.ClientSession() as session:
+        fact_text = await generate_text(session)
+        fact_text = await check_grammar(fact_text)
+        
+        if not fact_text:
+            print("❌ Не удалось сгенерировать текст")
+            return
+        
+        image_url = await generate_image(session, fact_text)
+        if not image_url:
+            image_url = await generate_image(session, "Интересный научный факт, инфографика, минимализм, яркие цвета.")
+        
+        try:
+            if image_url:
+                await bot.send_photo(chat_id=CHANNEL_ID, photo=image_url, caption=f"📝 {fact_text}")
+                print(f"✅ Пост опубликован: {fact_text}")
+            else:
+                await bot.send_message(chat_id=CHANNEL_ID, text=f"📝 {fact_text}\n⚠️ Без изображения")
+                print(f"⚠️ Пост опубликован без изображения: {fact_text}")
+        except Exception as e:
+            print(f"❌ Ошибка при публикации: {e}")
 
 def schedule_posts():
     for post_time in POST_TIMES:
@@ -95,13 +93,6 @@ def run_scheduler():
             time.sleep(600)
     except KeyboardInterrupt:
         print("🛑 Завершаем работу...")
-        asyncio.run(close_session())
-
-async def close_session():
-    await session.close()
 
 if __name__ == "__main__":
-    try:
-        asyncio.run(create_post())
-    finally:
-        asyncio.run(close_session())
+    asyncio.run(create_post())
