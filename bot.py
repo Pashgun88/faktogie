@@ -31,7 +31,8 @@ async def generate_text():
     )
 
     payload = {"model": "gpt-3.5-turbo", "messages": [{"role": "user", "content": prompt}]}
-    async with aiohttp.ClientSession() as session:
+    session = aiohttp.ClientSession()
+    try:
         async with session.post("https://api.openai.com/v1/chat/completions", json=payload, headers=headers) as response:
             if response.status == 200:
                 data = await response.json()
@@ -41,11 +42,14 @@ async def generate_text():
             else:
                 print(f"❌ Ошибка при генерации текста: {await response.text()}")
                 return None
+    finally:
+        await session.close()
 
 async def generate_image(prompt):
     headers = {"Authorization": f"Bearer {OPENAI_API_KEY}"}
     payload = {"model": "dall-e-3", "prompt": prompt, "size": "1024x1024"}
-    async with aiohttp.ClientSession() as session:
+    session = aiohttp.ClientSession()
+    try:
         async with session.post("https://api.openai.com/v1/images/generations", json=payload, headers=headers) as response:
             if response.status == 200:
                 data = await response.json()
@@ -55,6 +59,8 @@ async def generate_image(prompt):
                     return image_url
             print(f"❌ Ошибка генерации изображения: {await response.text()}")
             return None
+    finally:
+        await session.close()
 
 async def check_grammar(text):
     return text
