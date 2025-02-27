@@ -81,7 +81,8 @@ async def create_post():
         except Exception as e:
             print(f"❌ Ошибка при публикации: {e}")
     finally:
-        await session.close()
+        if not session.closed:
+            await session.close()
 
 def schedule_posts():
     for post_time in POST_TIMES:
@@ -98,4 +99,7 @@ def run_scheduler():
         print("🛑 Завершаем работу...")
 
 if __name__ == "__main__":
-    asyncio.run(create_post())
+    try:
+        asyncio.run(create_post())
+    except Exception as e:
+        print(f"❌ Ошибка во время работы бота: {e}")
